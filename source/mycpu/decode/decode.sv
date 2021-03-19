@@ -4,7 +4,7 @@ module Dreg(
     input i32 D_pc,   
     input i6 D_icode, D_acode,
     input i5 D_rt, D_rs, D_rd, D_sa,
-    input i1 D_stall, clk,
+    input i1 D_stall, clk, resetn,
 
     output i32 d_pc, d_val1, d_val2, d_valt,   
     output i6 d_icode, d_acode,
@@ -23,16 +23,20 @@ module Dreg(
     i5 d_rt, d_rs;
 
     always_ff @(posedge clk) begin
-        if(~D_stall)begin
-            d_pc <= D_pc;
-            d_icode <= D_icode;
-            d_acode <= D_acode;
-            d_rd <= D_rd;
-            d_sa <= D_sa;
+        if(~D_stall)d_pc <= D_pc;
+    end
 
-            d_rt <= D_rt;
-            d_rs <= D_rs;
-        end
+//stall and bubble are not proper in combinatorial logic
+    always_comb begin
+        //if(~D_stall)begin
+        d_icode <= D_icode;
+        d_acode <= D_acode;
+        d_rd <= D_rd;
+        d_sa <= D_sa;
+
+        d_rt <= D_rt;
+        d_rs <= D_rs;
+        //end
     end
 
 //link to regfile
@@ -71,21 +75,19 @@ module Dreg(
     i32 d_newval1, d_newval2;
 
     always_comb begin
-        unique case (d_src1)
-            e_dst: d_newval1 = e_val3;
-            m_dst: d_newval1 = m_val3;
-            w_dst: d_newval1 = w_val3;
-            default: d_newval1 = d_regval1;
-        endcase
+        if(d_src1 === 0)d_newval1 = 0;
+        else if(d_src1 === e_dst)d_newval1 = e_val3;
+        else if(d_src1 === m_dst)d_newval1 = m_val3;
+        else if(d_src1 === w_dst)d_newval1 = w_val3;
+        else d_newval1 = d_regval1;
     end
 
     always_comb begin
-        unique case (d_src2)
-            e_dst: d_newval2 = e_val3;
-            m_dst: d_newval2 = m_val3;
-            w_dst: d_newval2 = w_val3;
-            default: d_newval2 = d_regval2;
-        endcase
+        if(d_src2 === 0)d_newval2 = 0;
+        else if(d_src2 === e_dst)d_newval2 = e_val3;
+        else if(d_src2 === m_dst)d_newval2 = m_val3;
+        else if(d_src2 === w_dst)d_newval2 = w_val3;
+        else d_newval2 = d_regval2;
     end
 
 //produce d_val1
@@ -94,8 +96,13 @@ module Dreg(
             J:   d_val1 = 0;  //instructions that ignore d_rs
             JAL: d_val1 = pred_pc;  //
             LUI: d_val1 = 0;
-            SRA: d_val1 = 0; //the normal rs is 0 which lead the d_val1 to 0 too.
-            SRL: d_val1 = 0; //so can these two lines be ignored?
+            SPE: begin
+                unique case (d_acode)
+                    SRA: d_val1 = 0; //the normal rs is 0 which lead the d_val1 to 0 too.
+                    SRL: d_val1 = 0; //so can these two lines be ignored?
+                    default: d_val1 = d_newval1;
+                endcase
+            end
             default: d_val1 = d_newval1;
         endcase
     end
@@ -145,6 +152,7 @@ module Dreg(
                     d_val2 = {immeSE[29:0],2'b00} + f_pc;
                 end else d_val2 = 0;
             end
+            default: d_val2 = 0;
         endcase
     end
 
@@ -163,7 +171,10 @@ module Dreg(
             end
             J:   d_jump = 1;
             JAL: d_jump = 1;
-            JR:  d_jump = 1;
+            SPE: begin
+                if(d_acode === JR)d_jump = 1;
+                else d_jump = 0;   // confirm that the bubble set all signals to 0
+            end
             default: d_jump = 0;
         endcase
     end

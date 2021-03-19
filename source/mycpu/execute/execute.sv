@@ -4,7 +4,7 @@ module Ereg(
     input i32 E_pc, E_val1, E_val2, E_valt,
     input i6 E_icode, E_acode,
     input i5 E_dst, E_src1, E_src2, E_rd, E_sa,  
-    input i1 E_bubble, clk,
+    input i1 E_bubble, clk, resetn,
 
     output i32 e_pc,e_val3,
     output i6 e_icode, e_acode,
@@ -19,11 +19,20 @@ module Ereg(
 
     i5 e_sa,e_rd;
 
-    assign e_valt = E_valt;
-
     always_ff @(posedge clk) begin
-        if(~E_bubble) begin
+        if(E_bubble | ~resetn) begin
+            e_pc <= 0;
+            e_acode <= 0;
+            e_icode <= 0;
+            e_sa <= 0;
+            e_rd <= 0;
+            e_dst <= 0;
+            e_val1 <= 0;
+            e_val2 <= 0;
+            e_valt <= 0;
+        end else begin
             e_pc <= E_pc;
+            e_icode <= E_icode;
             e_acode <= E_acode;
             e_sa <= E_sa;
             e_rd <= E_rd;
@@ -31,15 +40,6 @@ module Ereg(
             e_val1 <= E_val1;
             e_val2 <= E_val2;
             e_valt <= E_valt;
-        end else begin
-            e_pc <= 0;
-            e_acode <= 0;
-            e_sa <= 0;
-            e_rd <= 0;
-            e_dst <= 0;
-            e_val1 <= 0;
-            e_val2 <= 0;
-            e_valt <= 0;
         end
     end
     
@@ -62,10 +62,10 @@ module Ereg(
                     XOR_:   e_val3 = e_val1 ^ e_val2;
                     SUBU:  e_val3 = e_val1 - e_val2;            
                     SRL:   e_val3 = e_val2 >> e_sa;
-                    SRA:   e_val3 = e_val2 >>> e_sa;
+                    SRA:   e_val3 = $signed(e_val2) >>> e_sa;
                     SLTU:  e_val3 = (e_val1 < e_val2);
                     SLT:   e_val3 = $signed(e_val1) < $signed(e_val2);
-                    SLL:   e_val3 = e_val2 << e_sa;
+                    SLL:   e_val3 = e_val2 << e_sa;   // the bubble selection, making sure it becomes 0.
                     OR_:    e_val3 = e_val1 | e_val2;
                     NOR_:   e_val3 = ~(e_val1 | e_val2);
                     AND_:   e_val3 = e_val1 & e_val2;

@@ -71,8 +71,6 @@ module SRAMTop(
     assign vaddrI = ireq.addr;
     assign isreq.addr = paddrI;
 
-
-
     assign inst_sram_en    = isreq.en;
     assign inst_sram_wen   = isreq.wen;
     assign inst_sram_addr  = isreq.addr;

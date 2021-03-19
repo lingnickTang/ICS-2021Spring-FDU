@@ -84,7 +84,7 @@ module mycpu_top (
 // in mycpu_top.sv
 
     assign debug_wb_pc       = top.core.wreg.w_pc;
-    assign debug_wb_rf_wen   = top.core.wreg.w_write_enable;
+    assign debug_wb_rf_wen   = top.core.wreg.w_write_enable; // all bits should be set to 1
     assign debug_wb_rf_wnum  = top.core.wreg.w_dst;
     assign debug_wb_rf_wdata = top.core.wreg.w_val3;
 endmodule

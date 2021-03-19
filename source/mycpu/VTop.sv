@@ -13,10 +13,15 @@ module VTop (
 
     ibus_req_t  ireq;
     ibus_resp_t iresp;
+
+    cbus_req_t  icreq,  dcreq;
+
+
     dbus_req_t  dreq;
     dbus_resp_t dresp;
-    cbus_req_t  icreq,  dcreq;
+
     cbus_resp_t icresp, dcresp;
+
 
     MyCore core(.*);
     IBusToCBus icvt(.*);

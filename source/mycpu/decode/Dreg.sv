@@ -23,19 +23,19 @@ module Dreg(
     i5 d_rt, d_rs, d_rd;
 
     always_ff @(posedge clk) begin
-        if(~D_stall)d_pc <= D_pc;
+        if(~D_stall | resetn)d_pc <= D_pc;
     end
 
 //stall and bubble are not proper in combinatorial logic
     always_comb begin
         //if(~D_stall)begin
-        d_icode <= D_icode;
-        d_acode <= D_acode;
-        d_rd <= D_rd;
-        d_sa <= D_sa;
+        d_icode = D_icode;
+        d_acode = D_acode;
+        d_rd = D_rd;
+        d_sa = D_sa;
 
-        d_rt <= D_rt;
-        d_rs <= D_rs;
+        d_rt = D_rt;
+        d_rs = D_rs;
         //end
     end
 

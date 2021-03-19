@@ -5,7 +5,7 @@ module MyCore (
 
     output ibus_req_t  ireq,
     input  ibus_resp_t iresp,
-    output dbus_req_t  dreq,  
+    output dbus_req_t  dreq,
     input  dbus_resp_t dresp
 );
     /****
@@ -33,7 +33,7 @@ module MyCore (
     i1 d_jump;
     i32 d_pc, d_val1, d_val2, d_valt;   
     i6 d_icode, d_acode;
-    i5 d_dst, d_src1, d_src2, d_rd, d_sa; 
+    i5 d_dst, d_src1, d_src2, d_sa;
     
     Dreg dreg(
         .d_jump,
@@ -59,18 +59,21 @@ module MyCore (
         .E_pc(d_pc), .E_val1(d_val1),
         .E_val2(d_val2), .E_valt(d_valt),
         .E_icode(d_icode), .E_acode(d_acode),
-        .E_dst(d_dst), .E_src1(d_src1), .E_src2(d_src2), 
-        .E_rd(d_rd), .E_sa(d_sa),
+        .E_dst(d_dst),
+        .E_sa(d_sa),
         .E_bubble, .clk,
         .e_req,
         .*
         );
 
 //M
-    i32 m_pc, m_val3;
-    i6 m_icode, m_acode;
+    i32 m_pc; /* verilator lint_off UNUSED */
+    i32 m_val3; 
+    i6 m_icode, m_acode; /* verilator lint_off UNUSED */
     i5 m_dst;
     i4 m_write_enable;
+
+    i1 unused_ok = &{1'b0, m_pc ,1'b0};  //reduced
 
     Mreg mreg(
         .M_pc(e_pc), .M_val3(e_val3), .M_icode(e_icode),
@@ -79,15 +82,14 @@ module MyCore (
         );
   
 //W
-    i32 w_pc;
+    //i32 w_pc;
     i32 w_val3;
     i5 w_dst;
     i4 w_write_enable;
     
-
     Wreg wreg(
-        .W_pc(m_pc), .W_val3(m_val3), .W_icode(m_icode),
-        .W_acode(m_acode), .W_dst(m_dst), .W_write_enable(m_write_enable),
+        .W_val3(m_val3), .W_dst(m_dst), 
+        .W_write_enable(m_write_enable),
         .clk,
         .*
         );
@@ -98,7 +100,7 @@ module MyCore (
 
     Regfile regfile(
         .ra1(d_regidx1), .ra2(d_regidx2), .wa3(w_dst),
-        .write_enable(w_write_enable[0]), 
+        .write_enable(w_write_enable), 
         .wd3(w_val3), .rd1(d_regval1), .rd2(d_regval2),
         .clk,
         .*
@@ -114,7 +116,6 @@ module MyCore (
 
 
 //control logic
-    //Controlreg controlreg(.*);  //is it written by me?
     i1 conflict1;  //consider the zero register
     always_comb begin
         if(e_icode === LW && (e_dst === d_src1 || e_dst === d_src2)) begin
@@ -136,16 +137,25 @@ module MyCore (
 // instruction request and reception
 
 //request
+    //ibus_req_t tmpi /* verilator split_var */; 
     always_comb begin
-        ireq.valid = ~D_stall;    
         ireq.addr = f_pc;
+        ireq.valid = ~D_stall;    
     end
+    //assign  ireq.addr = tmpi.addr;
+    //assign  ireq.valid = tmpi.valid;
     
 //reception
     i32 instr;
+    i1 i_data_ok, i_addr_ok;
+    
 
     always_comb begin
-        instr = iresp.data;
+        i_data_ok = iresp.data_ok;
+        i_addr_ok = iresp.addr_ok;
+
+        if(i_data_ok && i_addr_ok)instr = iresp.data;
+
         f_icode = instr[31:26];
         f_rs = instr[25:21];
         f_rt = instr[20:16];
@@ -167,17 +177,19 @@ module MyCore (
 
 //reception
     i32 m_data;
-
+    i1 m_data_ok, m_addr_ok;
     always_comb begin
-        m_data = dresp.data;
+        m_data_ok = dresp.data_ok;
+        m_addr_ok = dresp.addr_ok;
+
+        if(m_data_ok && m_addr_ok)m_data = dresp.data;
     end
 
 //initialize the PC value
-    i1 test;
     always_ff @(posedge clk) begin
         if (~resetn) begin
             // AHA!
-            pred_pc <= 32'hbfc0_0000; 
+            //pred_pc <= 32'hbfc0_0000; 
         end else begin
 
         end

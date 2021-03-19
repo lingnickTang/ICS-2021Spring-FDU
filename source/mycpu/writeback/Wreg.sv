@@ -2,6 +2,7 @@
 `include "Myheadfile.svh"
 module Wreg(
     input i32 W_val3,
+    //input i6 W_icode, W_acode,
     input i5 W_dst,
     input i4 W_write_enable,
     input i1 clk,resetn,
@@ -10,6 +11,8 @@ module Wreg(
     output i5 w_dst,
     output i4 w_write_enable
 );
+    
+   // i6 w_acode, w_icode;
 
     always_ff @(posedge clk) begin
         if(~resetn)begin

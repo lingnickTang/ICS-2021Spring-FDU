@@ -25,7 +25,6 @@ module Ereg(
             e_acode <= 0;
             e_icode <= 0;
             e_sa <= 0;
-            //e_rd <= 0;
             e_dst <= 0;
             e_val1 <= 0;
             e_val2 <= 0;
@@ -35,7 +34,7 @@ module Ereg(
             e_icode <= E_icode;
             e_acode <= E_acode;
             e_sa <= E_sa;
-            //e_rd <= E_rd;
+
             e_dst <= E_dst;
             e_val1 <= E_val1;
             e_val2 <= E_val2;
@@ -53,8 +52,8 @@ module Ereg(
             LUI:   e_val3 = e_val2;          //immeZF
             LW:    e_val3 = e_val1 + e_val2;
             ORI:   e_val3 = e_val1 | e_val2;
-            SLTI:  e_val3 = $signed(e_val1) < $signed(e_val2);
-            SLTIU: e_val3 = (e_val1 < e_val2);
+            SLTI:  e_val3 = ($signed(e_val1) < $signed(e_val2)) ? 32'h0000_0001 : 32'h0000_0000;
+            SLTIU: e_val3 = (e_val1 < e_val2) ? 32'h0000_0001 : 32'h0000_0000;
             SW:    e_val3 = e_val1 + e_val2;
             XORI:  e_val3 = e_val1 ^ e_val2;
             SPE:begin
@@ -63,9 +62,9 @@ module Ereg(
                     SUBU:  e_val3 = e_val1 - e_val2;            
                     SRL:   e_val3 = e_val2 >> e_sa;
                     SRA:   e_val3 = $signed(e_val2) >>> e_sa;
-                    SLTU:  e_val3 = (e_val1 < e_val2);
-                    SLT:   e_val3 = $signed(e_val1) < $signed(e_val2);
-                    SLL:   e_val3 = e_val2 << e_sa;   // the bubble selection, making sure it becomes 0.
+                    SLTU:  e_val3 = (e_val1 < e_val2) ? 32'h0000_0001 : 32'h0000_0000;
+                    SLT:    e_val3 = ($signed(e_val1) < $signed(e_val2)) ? 32'h0000_0001 : 32'h0000_0000;
+                    SLL:   e_val3 = e_val2 << e_sa;         // the bubble selection, making sure it becomes 0.
                     OR_:    e_val3 = e_val1 | e_val2;
                     NOR_:   e_val3 = ~(e_val1 | e_val2);
                     AND_:   e_val3 = e_val1 & e_val2;

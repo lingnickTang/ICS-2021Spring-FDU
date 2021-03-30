@@ -6,10 +6,10 @@ module Mreg(
     input i5 M_dst,
     input i1 clk, resetn,
 
-    output i32 m_pc, m_val3, 
+    output i32 m_pc, m_val3,
+    output i6 m_icode, m_acode,
     output i5 m_dst,
     output i4 m_write_enable,
-    output i6 m_icode, m_acode,
 
     input i32 m_data
 );
@@ -41,25 +41,25 @@ module Mreg(
 
 //transfer the en signal
     always_comb begin 
-        if(m_pc === 32'h0000_0000) m_write_enable = 4'b0000; //ensure the bubble come out all 0 results.
+        if(m_pc === 32'h0000_0000) m_write_enable = '0; //ensure the bubble come out all 0 results.
         else begin
             unique case (m_icode)
-                ADDIU: m_write_enable = 4'b1111;
-                ANDI:  m_write_enable = 4'b1111;
-                JAL:   m_write_enable = 4'b1111;
-                LUI:   m_write_enable = 4'b1111;
-                LW:    m_write_enable = 4'b1111;
-                ORI:   m_write_enable = 4'b1111;
-                SLTI:  m_write_enable = 4'b1111;
-                SLTIU: m_write_enable = 4'b1111;
-                XORI:  m_write_enable = 4'b1111;
+                ADDIU: m_write_enable = '1;
+                ANDI:  m_write_enable = '1;
+                JAL:   m_write_enable = '1;
+                LUI:   m_write_enable = '1;
+                LW:    m_write_enable = '1;
+                ORI:   m_write_enable = '1;
+                SLTI:  m_write_enable = '1;
+                SLTIU: m_write_enable = '1;
+                XORI:  m_write_enable = '1;
                 SPE: begin
                     unique case (m_acode)                        
-                        JR:  m_write_enable = 4'b0000;
-                        default: m_write_enable = 4'b1111;
+                        JR:  m_write_enable = '0;
+                        default: m_write_enable = '1;
                     endcase
                 end
-                default: m_write_enable = 4'b0000;
+                default: m_write_enable = '0;
             endcase
         end
     end

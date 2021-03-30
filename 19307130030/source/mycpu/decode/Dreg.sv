@@ -4,7 +4,7 @@ module Dreg(
     input i32 D_pc,   
     input i6 D_icode, D_acode,
     input i5 D_rt, D_rs, D_rd, D_sa,
-    input i1 D_stall, clk, resetn,
+    input i1 D_stall, clk,
 
     output i32 d_pc, d_val1, d_val2, d_valt,   
     output i6 d_icode, d_acode,
@@ -29,13 +29,13 @@ module Dreg(
 //stall and bubble are not proper in combinatorial logic
     always_comb begin
         //if(~D_stall)begin
-        d_icode <= D_icode;
-        d_acode <= D_acode;
-        d_rd <= D_rd;
-        d_sa <= D_sa;
+        d_icode = D_icode;
+        d_acode = D_acode;
+        d_rd = D_rd;
+        d_sa = D_sa;
 
-        d_rt <= D_rt;
-        d_rs <= D_rs;
+        d_rt = D_rt;
+        d_rs = D_rs;
         //end
     end
 

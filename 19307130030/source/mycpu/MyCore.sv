@@ -188,7 +188,6 @@ module MyCore (
         i_addr_ok = iresp.addr_ok;
 
         if(i_data_ok && i_addr_ok)instr = iresp.data;
-        else instr = '0;
 
         f_icode = instr[31:26];
         f_rs = instr[25:21];
@@ -217,7 +216,6 @@ module MyCore (
         m_addr_ok = dresp.addr_ok;
 
         if(m_data_ok && m_addr_ok)m_data = dresp.data;
-        else m_data = '0;
     end
 
 //initialize the PC value

@@ -11,7 +11,8 @@ module Ereg(
     output i5 e_dst,
 
     output i32 e_valt,
-    output i4 e_req
+    output i4 e_req,
+    output i1 e_vreq
 );
 //don't forget the bubble!
     
@@ -25,6 +26,7 @@ module Ereg(
             e_acode <= 0;
             e_icode <= 0;
             e_sa <= 0;
+            //e_rd <= 0;
             e_dst <= 0;
             e_val1 <= 0;
             e_val2 <= 0;
@@ -34,7 +36,7 @@ module Ereg(
             e_icode <= E_icode;
             e_acode <= E_acode;
             e_sa <= E_sa;
-
+            //e_rd <= E_rd;
             e_dst <= E_dst;
             e_val1 <= E_val1;
             e_val2 <= E_val2;
@@ -58,16 +60,16 @@ module Ereg(
             XORI:  e_val3 = e_val1 ^ e_val2;
             SPE:begin
                 unique case (e_acode)
-                    XOR_:   e_val3 = e_val1 ^ e_val2;
+                    XOR_:  e_val3 = e_val1 ^ e_val2;
                     SUBU:  e_val3 = e_val1 - e_val2;            
                     SRL:   e_val3 = e_val2 >> e_sa;
                     SRA:   e_val3 = $signed(e_val2) >>> e_sa;
                     SLTU:  e_val3 = (e_val1 < e_val2) ? 32'h0000_0001 : 32'h0000_0000;
-                    SLT:    e_val3 = ($signed(e_val1) < $signed(e_val2)) ? 32'h0000_0001 : 32'h0000_0000;
-                    SLL:   e_val3 = e_val2 << e_sa;         // the bubble selection, making sure it becomes 0.
-                    OR_:    e_val3 = e_val1 | e_val2;
-                    NOR_:   e_val3 = ~(e_val1 | e_val2);
-                    AND_:   e_val3 = e_val1 & e_val2;
+                    SLT:   e_val3 = ($signed(e_val1) < $signed(e_val2)) ? 32'h0000_0001 : 32'h0000_0000;
+                    SLL:   e_val3 = e_val2 << e_sa;   // the bubble selection, making sure it becomes 0.
+                    OR_:   e_val3 = e_val1 | e_val2;
+                    NOR_:  e_val3 = ~(e_val1 | e_val2);
+                    AND_:  e_val3 = e_val1 & e_val2;
                     ADDU:  e_val3 = e_val1 + e_val2;
                     default: e_val3 = 0;
                 endcase
@@ -81,4 +83,10 @@ module Ereg(
         if(e_icode === SW) e_req = 4'b1111;
         else e_req = 4'b0000;
     end
+
+    always_comb begin
+        if(e_icode === SW || e_icode === LW)e_vreq = 1;
+        else e_vreq = 0;
+    end
+
 endmodule

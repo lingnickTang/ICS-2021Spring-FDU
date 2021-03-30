@@ -42,17 +42,22 @@ public:
     bool force_diff;
     float p_disable;
 
+    void install_soc(const std::shared_ptr<BlockMemory> &mem);
     void install_memory(const std::shared_ptr<BlockMemory> &mem);
     void remove_memory();
 
     // start/stop: output to some file
     // open/close: input to program
     void start_fst_trace(const std::string &path);
+    void enable_fst_trace(bool enable = true);
     void stop_fst_trace();
     void start_text_trace(const std::string &path);
     void stop_text_trace();
     void open_text_diff(const std::string &path);
     void close_text_diff();
+
+    // NOTE: CONFREG class does not allow close pty
+    void open_pty(const std::string &path);
 
     virtual void reset() = 0;
     virtual void tick() = 0;
@@ -77,6 +82,7 @@ protected:
 
 private:
     bool _memory_installed;
+    bool _fst_enabled;
     size_t _fst_count;
     int _current_num;
 

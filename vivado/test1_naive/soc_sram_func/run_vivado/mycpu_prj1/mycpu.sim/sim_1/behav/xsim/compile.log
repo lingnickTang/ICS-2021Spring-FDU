@@ -1,22 +1,22 @@
 INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Download/Github/ICS-2021Spring-FDU/source/util/DBusToSRAMx.sv" into library xil_defaultlib
 INFO: [VRFC 10-311] analyzing module DBusToSRAMx
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Download/Github/ICS-2021Spring-FDU/source/mycpu/decode/Dreg.sv" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module Dreg
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Download/Github/ICS-2021Spring-FDU/source/mycpu/execute/Ereg.sv" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module Ereg
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Download/Github/ICS-2021Spring-FDU/source/mycpu/fetch/Freg.sv" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module Freg
 INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Download/Github/ICS-2021Spring-FDU/source/util/IBusToSRAMx.sv" into library xil_defaultlib
 INFO: [VRFC 10-311] analyzing module IBusToSRAMx
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Download/Github/ICS-2021Spring-FDU/source/mycpu/memory/Mreg.sv" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module Mreg
 INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Download/Github/ICS-2021Spring-FDU/source/mycpu/MyCore.sv" into library xil_defaultlib
 INFO: [VRFC 10-311] analyzing module MyCore
 INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Download/Github/ICS-2021Spring-FDU/source/mycpu/SRAMTop.sv" into library xil_defaultlib
 INFO: [VRFC 10-311] analyzing module SRAMTop
-INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Download/Github/ICS-2021Spring-FDU/source/mycpu/decode/decode.sv" into library xil_defaultlib
-INFO: [VRFC 10-311] analyzing module Dreg
-INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Download/Github/ICS-2021Spring-FDU/source/mycpu/execute/execute.sv" into library xil_defaultlib
-INFO: [VRFC 10-311] analyzing module Ereg
-INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Download/Github/ICS-2021Spring-FDU/source/mycpu/fetch/fetch.sv" into library xil_defaultlib
-INFO: [VRFC 10-311] analyzing module Freg
-INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Download/Github/ICS-2021Spring-FDU/source/mycpu/memory/memory.sv" into library xil_defaultlib
-INFO: [VRFC 10-311] analyzing module Mreg
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Download/Github/ICS-2021Spring-FDU/source/mycpu/writeback/Wreg.sv" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module Wreg
 INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Download/Github/ICS-2021Spring-FDU/source/mycpu/mycpu_top.sv" into library xil_defaultlib
 INFO: [VRFC 10-311] analyzing module mycpu_top
-INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Download/Github/ICS-2021Spring-FDU/source/mycpu/utility/regfile.sv" into library xil_defaultlib
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Download/Github/ICS-2021Spring-FDU/source/mycpu/utility/Regfile.sv" into library xil_defaultlib
 INFO: [VRFC 10-311] analyzing module Regfile
-INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/Download/Github/ICS-2021Spring-FDU/source/mycpu/writeback/writeback.sv" into library xil_defaultlib
-INFO: [VRFC 10-311] analyzing module Wreg

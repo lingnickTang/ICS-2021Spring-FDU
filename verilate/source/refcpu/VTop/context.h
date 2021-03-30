@@ -5,7 +5,7 @@
 using ContextVType = decltype(VModel::VTop->core__DOT__ctx);
 
 struct ContextWrapper {
-    ContextWrapper(VTopType *_top, const ContextVType &_data)
+    ContextWrapper(VModelScope *_top, const ContextVType &_data)
         : top(_top), data(_data) {}
 
     auto state() const -> CPUState {
@@ -25,11 +25,11 @@ struct ContextWrapper {
         // the context struct, we can access registers directly
         // in verilated model.
 
-        assert(RegisterID::R0 <= id && id <= RegisterID::RA);
+        asserts(RegisterID::R0 <= id && id <= RegisterID::RA, "invalid register id %d", id);
         return data[id];
     }
 
 protected:
-    VTopType *top;
+    VModelScope *top;
     const ContextVType &data;
 };

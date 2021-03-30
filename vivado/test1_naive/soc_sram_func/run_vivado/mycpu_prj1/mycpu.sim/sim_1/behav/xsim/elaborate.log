@@ -5,9 +5,6 @@ Using 2 slave threads.
 Starting static elaboration
 Pass Through NonSizing Optimizer
 WARNING: [VRFC 10-3091] actual bit length 18 differs from formal bit length 16 for port 'addra' [D:/Download/Github/ICS-2021Spring-FDU/vivado/test1_naive/soc_sram_func/rtl/soc_lite_top.v:168]
-WARNING: [VRFC 10-3823] variable 'dsreq' might have multiple concurrent drivers [D:/Download/Github/ICS-2021Spring-FDU/source/mycpu/SRAMTop.sv:55]
-WARNING: [VRFC 10-3823] variable 'isreq' might have multiple concurrent drivers [D:/Download/Github/ICS-2021Spring-FDU/source/mycpu/SRAMTop.sv:72]
-WARNING: [VRFC 10-3823] variable 'pred_pc' might have multiple concurrent drivers [D:/Download/Github/ICS-2021Spring-FDU/source/mycpu/MyCore.sv:177]
 Completed static elaboration
 Starting simulation data flow analysis
 WARNING: [XSIM 43-4100] "D:/Download/Github/ICS-2021Spring-FDU/vivado/test1_naive/soc_sram_func/testbench/mycpu_tb.v" Line 43. Module tb_top has a timescale but at least one module in design doesn't have timescale.

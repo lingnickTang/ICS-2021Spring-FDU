@@ -233,9 +233,15 @@ module MyCore (
     end
 
     // remove following lines when you start
+<<<<<<< HEAD
     /*
     assign ireq = 0;
     assign dreq = 0;
     logic _unused_ok = &{iresp, dresp};
     */
+=======
+    assign ireq = '0;
+    assign dreq = '0;
+    `UNUSED_OK({iresp, dresp});
+>>>>>>> upstream/master
 endmodule

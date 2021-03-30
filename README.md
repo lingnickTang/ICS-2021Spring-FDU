@@ -2,7 +2,8 @@
 
 Spring 2021, Fudan University.
 
-Course Website: <https://fducslg.github.io/ICS-2021Spring-FDU/>
+* Course Website: <https://fducslg.github.io/ICS-2021Spring-FDU/>
+* Dev Repository: <https://github.com/FDUCSLG/ICS-2021Spring-dev>
 
 ## Directory Structure
 
@@ -12,6 +13,34 @@ Course Website: <https://fducslg.github.io/ICS-2021Spring-FDU/>
 * `vivado/`: SoC and testbenches on Vivado.
 * `verilate/`: C++ source files for verilated simulation.
 * `build/`: temporary build files.
+
+## Commands
+
+```plaintext
+$ make help
+Available commands:
+  make verilate: synthesize/compile your RTL code with Verilator.
+  make vbuild: compile Verilator simulation sources into executable file "vmain".
+  make vsim: "make vbuild" first and then execute "vmain".
+  make vsim-gdb: run "vmain" with GDB.
+  make doc-build: build documents into "doc/book", i.e., run "mdbook build".
+  make doc-serve: run "mdbook serve".
+  make doc-sync: upload webpages onto "riteme.site" (requires authentication).
+  make misc-sync: upload "misc/doc" onto "riteme.site" (requires authentication).
+  make system-info: print information about installed system packages.
+  make dump-instructions: dump all instructions during simulation (RefCPU only).
+
+Available parameters:
+  TARGET: e.g. refcpu/VTop, mycpu/VCacheTop.
+  TEST: which test under misc/nscscc to simulate. Default to empty string.
+  FST: where to save FST trace file.
+  USE_CLANG: use LLVM clang and libc++.
+  VSIM_ARGS: pass command line arguments to "vmain".
+  VSIM_OPT: set to 1 to enable compiler optimization. ("-O2 -march=native -flto")
+  VSIM_SANITIZE: set to 1 to enable address sanitizer and undefined behavior sanitizer.
+  SV_EXTRA_FLAGS: extra synthesis flags passed to Verilator.
+  CXX_EXTRA_FLAGS: extra compiler flags passed to C++ compiler.
+```
 
 ## Prerequisites
 
@@ -27,12 +56,14 @@ We recommend you work on a Linux distribution (Ubuntu, Manjaro, ArchLinux, etc.)
     * corresponding `libstdc++` (GNU C++) or `libc++` (LLVM clang)
 * `libz-dev` (or the correct devel packege for zlib on your Linux distribution)
 * `systemd-coredump` (for `coredumpctl`)
+* `socat`: SOcket CAT
+* any serial port terminal program, e.g. `uucp`'s `cu` or GNU `screen`
 
 ### Ubuntu 20.04
 
 ```shell
 apt update
-apt install -y verilator gdb gtkwave build-essential libz-dev systemd-coredump
+apt install -y verilator gdb gtkwave build-essential libz-dev systemd-coredump screen
 ```
 
 Run RefCPU functional test:
@@ -47,7 +78,7 @@ Because Verilator 3.x on Ubuntu 18.04 is outdated, we need to install a newer ve
 
 ```shell
 apt update
-apt install -y gdb gtkwave make clang-10 libc++-10-dev libc++abi-10-dev libz-dev systemd-coredump
+apt install -y gdb gtkwave make clang-10 libc++-10-dev libc++abi-10-dev libz-dev systemd-coredump screen
 # wget -O verilator4.deb https://github.com/sifive/verilator/releases/download/4.036-0sifive2/verilator_4.036-0sifive2_amd64.deb
 dpkg -i verilator4.deb
 ln -s /usr/local/share/verilator /usr/share/
@@ -65,7 +96,7 @@ You have to download a newer version of Verilator as in the previous section “
 
 ```shell
 apt update
-apt install gdb gtkwave build-essential zlib1g-dev systemd-coredump
+apt install gdb gtkwave build-essential zlib1g-dev systemd-coredump screen
 # wget -O verilator4.deb https://github.com/sifive/verilator/releases/download/4.036-0sifive2/verilator_4.036-0sifive2_amd64.deb
 dpkg -i verilator4.deb
 ln -s /usr/local/share/verilator /usr/share/
@@ -77,7 +108,7 @@ NOTE: only GCC 8 is available on Debian 10. However, Verilator simulation can st
 
 ```
 pacman -Sy
-pacman -S verilator gdb gtkwave base-devel zlib
+pacman -S verilator gdb gtkwave base-devel zlib screen
 ```
 
 ### Notes on Verilator
@@ -88,10 +119,10 @@ If you need more recent version of Verilator, please refer to <https://www.verip
 
 ## NSCSCC Performance Test
 
-By default, `make vsim` will simulate RefCPU with NSCSCC functional test. We provide memory initialization files (`.coe`) of performance tests from NSCSCC. For example, if you want to run CoreMark on verilated models, you can specify the `--memfile`/`-m` and set `--ref-trace`/`-r` to empty string to disable text trace diff.
+By default, `make vsim` will simulate RefCPU with NSCSCC functional test. We provide memory initialization files (`.coe`) of performance tests from NSCSCC. For example, if you want to run CoreMark on verilated models, you can specify the `--memfile`/`-m` and set `--ref-trace`/`-r` to empty string to disable text trace diff. Moreover, you can set `TEST` make argument to specify which `.coe` file (under directory `misc/nscscc`) to simulate.
 
 ```shell
-make vsim -j VSIM_ARGS='--no-status -m ./misc/nscscc/coremark.coe -r ""'
+make vsim -j TEST=coremark VSIM_ARGS="--no-status"
 ```
 
-See `make vsim VSIM_ARGS='-h'` for more details.
+See `make help` and `make vsim VSIM_ARGS='-h'` for more details.

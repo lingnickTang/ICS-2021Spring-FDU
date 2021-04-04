@@ -11,9 +11,7 @@ module MyCore (
     /****
      * TODO (Lab1) your code here :)
      ***/
-    
 // F
-    i1 F_stall;
     i32 selpc, pred_pc;
 
     Freg freg(
@@ -27,12 +25,11 @@ module MyCore (
     i32 f_pc;    
     i6 f_icode, f_acode;
     i5 f_rt, f_rs, f_rd, f_sa;
-    i1 D_stall;
 
     i1 d_jump;
     i32 d_pc, d_val1, d_val2, d_valt;   
     i6 d_icode, d_acode;
-    i5 d_dst, d_src1, d_src2, d_sa;
+    i5 d_dst, d_src1, d_src2, d_rt;
     
     Dreg dreg(
         .d_jump,
@@ -48,45 +45,45 @@ module MyCore (
 //E
     i32 e_pc,e_val3;
     i6 e_icode, e_acode;
-    i5 e_dst;
+    i5 e_dst, e_rt;
 
     i32 e_valt;
-    i4 e_req;
-    i1 E_bubble, e_vreq;
 
     Ereg ereg(
         .E_pc(d_pc), .E_val1(d_val1),
         .E_val2(d_val2), .E_valt(d_valt),
         .E_icode(d_icode), .E_acode(d_acode),
-        .E_dst(d_dst),
-        .E_sa(d_sa),
+        .E_dst(d_dst), .E_rt(d_rt),
         .E_bubble, .clk,
-        .e_req,
         .*
         );
 
 //M
-    i32 m_pc; /* verilator lint_off UNUSED */
-    i32 m_val3; 
-    i6 m_icode, m_acode; /* verilator lint_off UNUSED */
+    i32 m_pc, m_valt;
+    i32 m_val3, m_newval3; 
+    i6 m_icode, m_acode;
     i5 m_dst;
-    i4 m_write_enable;
+    i4 m_write_enable, m_write_data;
+    i1 m_vreq;
 
     i1 unused_ok = &{1'b0, m_pc ,1'b0};  //reduced
 
     Mreg mreg(
         .M_pc(e_pc), .M_val3(e_val3), .M_icode(e_icode),
         .M_acode(e_acode), .M_dst(e_dst), .clk,
+        .M_rt(e_rt),
         .*
         );
   
 //W
-    //i32 w_pc;
+    i32 w_pc;
     i32 w_val3;
+    i6 w_acode, w_icode;
     i5 w_dst;
     i4 w_write_enable;
-    
+
     Wreg wreg(
+        .W_pc(m_pc), .W_acode(m_acode), .W_icode(m_icode),
         .W_val3(m_val3), .W_dst(m_dst), 
         .W_write_enable(m_write_enable),
         .clk,
@@ -127,10 +124,20 @@ module MyCore (
         end else conflict1 = 0;
     end
 
+//bubble and stall
+    i1 F_stall, D_stall, E_stall, M_stall;
+    i1 D_bubble, E_bubble, W_bubble;
+    i1 data_stall,instr_stall;
+
     always_comb begin
-        F_stall = conflict1;
-        D_stall = conflict1;
+        F_stall = conflict1 | instr_stall | data_stall;
+        D_stall = conflict1 | instr_stall | data_stall;
+        E_stall = data_stall;
+        M_stall = data_stall;
+
+        D_bubble = instr_stall;
         E_bubble = conflict1;
+        W_bubble = data_stall;
     end
 
 // instruction request and reception
@@ -170,24 +177,20 @@ module MyCore (
     assign ireq.addr = paddrI;
 
 //request
-    //ibus_req_t tmpi /* verilator split_var */; 
     always_comb begin
         vaddrI = f_pc;
-        ireq.valid = ~D_stall;    
+        ireq.valid = '1;    
     end
-    //assign  ireq.addr = tmpi.addr;
-    //assign  ireq.valid = tmpi.valid;
     
 //reception
     i32 instr;
-    i1 i_data_ok, i_addr_ok;
-    
+    i1 i_resp;
 
     always_comb begin
-        i_data_ok = iresp.data_ok;
-        i_addr_ok = iresp.addr_ok;
+        i_resp = iresp.data_ok & iresp.addr_ok;
+        instr_stall = ~i_resp;
 
-        if(i_data_ok && i_addr_ok)instr = iresp.data;
+        if(i_resp)instr = iresp.data;
         else instr = '0;
 
         f_icode = instr[31:26];
@@ -202,46 +205,24 @@ module MyCore (
 
 //request
     always_comb begin
-        dreq.valid = e_vreq;
-        vaddrD = e_val3;
+        dreq.valid = m_vreq;
+        vaddrD = m_newval3;
         dreq.size = MSIZE4;      //problem1: which size?
-        dreq.strobe = e_req; //
-        dreq.data = e_valt;
+        dreq.strobe = m_write_data; //
+        dreq.data = m_valt;
     end
 
 //reception
     i32 m_data;
-    i1 m_data_ok, m_addr_ok;
+    i1 d_resp;
     always_comb begin
-        m_data_ok = dresp.data_ok;
-        m_addr_ok = dresp.addr_ok;
-
-        if(m_data_ok && m_addr_ok)m_data = dresp.data;
+        d_resp = dresp.data_ok & dresp.addr_ok;
+        if(d_resp)m_data = dresp.data;
         else m_data = '0;
+        data_stall = m_vreq && ~d_resp && ~m_write_data[0]; //data need
     end
-
-//initialize the PC value
-    always_ff @(posedge clk) begin
-        if (~resetn) begin
-            // AHA!
-            //pred_pc <= 32'hbfc0_0000; 
-        end else begin
-
-        end
-            // reset
-            // NOTE: if resetn is X, it will be evaluated to false.
-    end
-
-    // remove following lines when you start
-<<<<<<< HEAD
+    
     /*
-    assign ireq = 0;
-    assign dreq = 0;
     logic _unused_ok = &{iresp, dresp};
     */
-=======
-    assign ireq = '0;
-    assign dreq = '0;
-    `UNUSED_OK({iresp, dresp});
->>>>>>> upstream/master
 endmodule

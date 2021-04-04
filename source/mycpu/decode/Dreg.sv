@@ -4,11 +4,11 @@ module Dreg(
     input i32 D_pc,   
     input i6 D_icode, D_acode,
     input i5 D_rt, D_rs, D_rd, D_sa,
-    input i1 D_stall, clk,
+    input i1 D_stall, D_bubble, clk, resetn,
 
-    output i32 d_pc, d_val1, d_val2, d_valt,   
+    output i32 d_pc, d_val1, d_val2, d_valt, d_jaddr,
     output i6 d_icode, d_acode,
-    output i5 d_dst, d_src1, d_src2, d_sa, //to splice into imme
+    output i5 d_dst, d_src1, d_src2, d_rt, //to splice into imme
     output i1 d_jump,
 
     input i32 w_val3, m_val3, e_val3,
@@ -20,24 +20,39 @@ module Dreg(
     output i5 d_regidx1, d_regidx2
 );
     //consider the D_stall
-    i5 d_rt, d_rs, d_rd;
+    i5 d_rs, d_rd, d_sa;
 
     always_ff @(posedge clk) begin
-        if(~D_stall)d_pc <= D_pc;
+        if(~resetn)begin
+            d_pc <= '0;
+            d_icode <= '0;
+            d_acode <= '0;
+            d_rt <= '0;
+            d_rs <= '0;
+            d_rd <= '0;
+            d_sa <= '0;
+        end else if(D_stall)begin
+            
+        end else if(D_bubble)begin
+            d_pc <= '0;
+            d_icode <= '0;
+            d_acode <= '0;
+            d_rt <= '0;
+            d_rs <= '0;
+            d_rd <= '0;
+            d_sa <= '0;
+        end else begin
+            d_pc <= D_pc;
+            d_icode <= D_icode;
+            d_acode <= D_acode;
+            d_rt <= D_rt;
+            d_rs <= D_rs;
+            d_rd <= D_rd;
+            d_sa <= D_sa;
+        end
     end
 
 //stall and bubble are not proper in combinatorial logic
-    always_comb begin
-        //if(~D_stall)begin
-        d_icode = D_icode;
-        d_acode = D_acode;
-        d_rd = D_rd;
-        d_sa = D_sa;
-
-        d_rt = D_rt;
-        d_rs = D_rs;
-        //end
-    end
 
 //link to regfile
     always_comb begin
@@ -61,6 +76,17 @@ module Dreg(
             SLTI:  d_dst = d_rt;
             SLTIU: d_dst = d_rt;
             XORI:  d_dst = d_rt;
+            LB:    d_dst = d_rt;
+            LBU:   d_dst = d_rt;
+            LH:    d_dst = d_rt;
+            LHU:   d_dst = d_rt;
+            REGIMM: begin
+                unique case (d_rt)
+                    BGEZAL: d_dst = 5'd31;
+                    BLTZAL: d_dst = 5'd31;
+                    default: d_dst = 0;
+                endcase
+            end
             default: d_dst = 0;
         endcase
     end
@@ -68,7 +94,7 @@ module Dreg(
 //select the d_src1 ans d_src2
     always_comb begin
         d_src1 = d_rs;
-        d_src2 = d_rt;
+        d_src2 = (d_icode === REGIMM) ? 0 : d_rt;  //REGIMM use rt as acode
     end
 
 //forwarding at first
@@ -94,12 +120,13 @@ module Dreg(
     always_comb begin
         unique case (d_icode)
             J:   d_val1 = 0;  //instructions that ignore d_rs
-            JAL: d_val1 = pred_pc;  //
             LUI: d_val1 = 0;
             SPE: begin
                 unique case (d_acode)
-                    SRA: d_val1 = 0; //the normal rs is 0 which lead the d_val1 to 0 too.
-                    SRL: d_val1 = 0; //so can these two lines be ignored?
+                    SRA: d_val1 = d_sa; 
+                    SRL: d_val1 = d_sa; 
+                    SLLV: d_val1 = d_rs;
+                    SRAV: d_val1 = d_rs;
                     default: d_val1 = d_newval1;
                 endcase
             end
@@ -107,6 +134,7 @@ module Dreg(
         endcase
     end
 
+//produce d_val2
     i16 imme;
     assign imme ={d_rd, d_sa, d_acode};
 
@@ -120,66 +148,99 @@ module Dreg(
     //though not the branch itself, but they are same in most cases.
     //may occur problems;
 
-//produce d_val2
+
     always_comb begin
         unique case (d_icode)
             ADDIU: d_val2 = immeSE;
             ANDI:  d_val2 = immeZE;
-            J:     d_val2 = instr_idxE;
-            JAL:   d_val2 = instr_idxE;
             LUI:   d_val2 = immeZF;
             LW:    d_val2 = immeSE;  //offset
             ORI:   d_val2 = immeZE;
             SLTI:  d_val2 = immeSE;
             SLTIU: d_val2 = immeSE;
-            SW:    d_val2 = immeSE; //offset
+            SW:    d_val2 = immeSE;  //offset
             XORI:  d_val2 = immeZE;
+            JAL:   d_val2 = pred_pc;
 
             SPE:begin
                 unique case (d_acode)
-                    JR: d_val2 = d_newval1; //special JR, using GPR[rs]
+                    JALR: d_val2 = pred_pc; 
                     default: d_val2 = d_newval2;
                 endcase
             end
-
-            BEQ: begin
-                if(d_newval1 === d_newval2) begin
-                    d_val2 = {immeSE[29:0],2'b00} + f_pc;
-                end else d_val2 = 0;
-            end 
-            BNE: begin
-                if(d_newval1 !== d_newval2) begin
-                    d_val2 = {immeSE[29:0],2'b00} + f_pc;
-                end else d_val2 = 0;
+            LB:   d_val2 = immeSE;
+            LBU:  d_val2 = immeSE;
+            LH:   d_val2 = immeSE;
+            LHU:  d_val2 = immeSE;
+            SB:   d_val2 = immeSE;
+            SH:   d_val2 = immeSE;
+            REGIMM:begin
+                unique case (d_rt)
+                    BGEZAL: d_val2 = pred_pc;
+                    BLTZAL: d_val2 = pred_pc;
+                    default: d_val2 = 0;
+                endcase
             end
             default: d_val2 = 0;
+        endcase
+    end
+
+//jump address 
+//
+    i32 immeaddr = {immeSE[29:0],2'b00} + f_pc;
+    always_comb begin
+        unique case (d_icode)
+            J:     d_jaddr = instr_idxE;
+            JAL:   d_jaddr = instr_idxE;
+            SPE: unique case (d_acode)
+                JR:  d_jaddr = d_newval1;
+                JALR: d_jaddr = d_newval1;
+                default : d_jaddr = immeaddr;
+            endcase
+            JALR:  d_jaddr = d_newval1;
+            default: d_jaddr = immeaddr;
         endcase
     end
 
 //jump or not
     always_comb begin
         unique case (d_icode)
-            BEQ: begin 
-                if(d_newval1 === d_newval2) begin
-                    d_jump = 1;
-                end else d_jump = 0;
-            end
-            BNE: begin 
-                if(d_newval1 !== d_newval2) begin
-                    d_jump = 1;
-                end else d_jump = 0;
-            end
+            BEQ: d_jump = (d_newval1 === d_newval2) ? 1 : 0;
+            BNE: d_jump = (d_newval1 !== d_newval2) ? 1 : 0;
             J:   d_jump = 1;
             JAL: d_jump = 1;
             SPE: begin
-                if(d_acode === JR)d_jump = 1;
-                else d_jump = 0;   // confirm that the bubble set all signals to 0
+                unique case (d_acode)
+                    JR:  d_jump = 1;
+                    JALR: d_jump = 1;
+                    default: d_jump = 0;
+                endcase
             end
+            REGIMM: begin  //regard rt as code way
+                unique case (d_rt)
+                    BGEZ:   d_jump = (d_newval1 >= '0) ? 1 : 0;
+                    BGEZAL: d_jump = (d_newval1 >= '0) ? 1 : 0;
+                    BLTZ:   d_jump = (d_newval1 < '0) ? 1 : 0;
+                    BLTZAL: d_jump = (d_newval1 < '0) ? 1 : 0;
+                    default: d_jump = 0;
+                endcase
+            end
+            BGTZ:   d_jump = (d_newval1 > '0) ? 1 : 0;
+            BLEZ:   d_jump = (d_newval1 <= '0) ? 1 : 0;
             default: d_jump = 0;
         endcase
     end
 
-//produce d_valt only for sw
-    assign d_valt = d_newval2;
+
+//produce d_valt for sw 
+    //assign d_valt = d_newval2;
+    always_comb begin
+        unique case (d_icode)
+            SW:   d_valt = d_newval2;
+            SB:   d_valt = d_newval2;
+            SH:   d_valt = d_newval2;
+            default: d_valt = 0;
+        endcase
+    end
 
 endmodule

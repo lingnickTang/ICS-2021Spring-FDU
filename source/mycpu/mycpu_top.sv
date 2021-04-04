@@ -4,7 +4,7 @@
 /**
  * TODO (Lab2) comment out the following line :)
  */
-`define FIXED_LATENCY
+//`define FIXED_LATENCY
 
 module mycpu_top (
 `ifdef FIXED_LATENCY
@@ -83,9 +83,9 @@ module mycpu_top (
      */
 // in mycpu_top.sv
 
-    assign debug_wb_pc       = top.core.m_pc;
-    assign debug_wb_rf_wen   = top.core.m_write_enable; // all bits should be set to 1
-    assign debug_wb_rf_wnum  = top.core.m_dst;
-    assign debug_wb_rf_wdata = top.core.m_val3;
+    assign debug_wb_pc       = top.core.w_pc;
+    assign debug_wb_rf_wen   = top.core.w_write_enable; // all bits should be set to 1
+    assign debug_wb_rf_wnum  = top.core.w_dst;
+    assign debug_wb_rf_wdata = top.core.w_val3;
 endmodule
 

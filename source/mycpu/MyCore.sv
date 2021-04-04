@@ -13,7 +13,7 @@ module MyCore (
      ***/
 // F
     i32 selpc, pred_pc;
-
+    i1 f_vreq;
     Freg freg(
         .F_pc(selpc), .F_stall,
         .f_pc, .pred_pc,
@@ -27,6 +27,7 @@ module MyCore (
     i5 f_rt, f_rs, f_rd, f_sa;
 
     i1 d_jump;
+    i32 d_jaddr;
     i32 d_pc, d_val1, d_val2, d_valt;   
     i6 d_icode, d_acode;
     i5 d_dst, d_src1, d_src2, d_rt;
@@ -71,7 +72,7 @@ module MyCore (
     Mreg mreg(
         .M_pc(e_pc), .M_val3(e_val3), .M_icode(e_icode),
         .M_acode(e_acode), .M_dst(e_dst), .clk,
-        .M_rt(e_rt),
+        .M_rt(e_rt), .M_valt(e_valt),
         .*
         );
   
@@ -188,7 +189,7 @@ module MyCore (
 
     always_comb begin
         i_resp = iresp.data_ok & iresp.addr_ok;
-        instr_stall = ~i_resp;
+        instr_stall = ~i_resp & f_vreq;
 
         if(i_resp)instr = iresp.data;
         else instr = '0;
